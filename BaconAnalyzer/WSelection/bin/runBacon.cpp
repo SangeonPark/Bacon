@@ -1,4 +1,4 @@
-//Driver to run Bacon 
+//Driver to run Bacon
 
 #include "../include/GenLoader.hh"
 #include "../include/EvtLoader.hh"
@@ -12,28 +12,28 @@
 #include <iostream>
 
 //Object Processors
-GenLoader       *fGen      = 0; 
-EvtLoader       *fEvt      = 0; 
-MuonLoader      *fMuon     = 0; 
-ElectronLoader  *fElectron = 0; 
+GenLoader       *fGen      = 0;
+EvtLoader       *fEvt      = 0;
+MuonLoader      *fMuon     = 0;
+ElectronLoader  *fElectron = 0;
 
-TTree* load(std::string iName) { 
+TTree* load(std::string iName) {
   TFile *lFile = TFile::Open(iName.c_str());
   TTree *lTree = (TTree*) lFile->FindObjectAny("Events");
   return lTree;
 }
 int main( int argc, char **argv ) {
-  gROOT->ProcessLine("#include <vector>");          
+  gROOT->ProcessLine("#include <vector>");
   int maxEvents     = atoi(argv[1]);
   std::string lName = argv[2];
   bool        lGen  = atoi(argv[3]);
-  //void runBacon(int iNEvents=10,std::string lName="test.root",bool lGen=false) {   
-  TTree *lTree = load(lName); 
-  if(lTree->GetEntries() < maxEvents || maxEvents == -1) maxEvents = lTree->GetEntries(); 
+  //void runBacon(int iNEvents=10,std::string lName="test.root",bool lGen=false) {
+  TTree *lTree = load(lName);
+  if(lTree->GetEntries() < maxEvents || maxEvents == -1) maxEvents = lTree->GetEntries();
   //Declare Readers
   fEvt      = new EvtLoader     (lTree);
   fMuon     = new MuonLoader    (lTree);
-  fElectron = new ElectronLoader(lTree); 
+  fElectron = new ElectronLoader(lTree);
   if(lGen) fGen      = new GenLoader     (lTree);
 
   TFile *lFile = new TFile("Output.root","RECREATE");
@@ -41,14 +41,14 @@ int main( int argc, char **argv ) {
   //Setup Tree
   fEvt ->setupTree      (lOut);
   fEvt ->setupRecoilTree();
-  fMuon->setupTree      (lOut); 
+  fMuon->setupTree      (lOut);
   if(lGen) fGen ->setupTree      (lOut);
   if(lGen) fGen ->setupRecoilTree();
-  for(int i0 = 0; i0 < maxEvents; i0++) { 
+  for(int i0 = 0; i0 < maxEvents; i0++) {
     if(i0 % 1000 == 0) std::cout << "===> Processed " << i0 << " - Done : " << (float(i0)/float(maxEvents)) << std::endl;
     //Load Ntuple & Select 1 good muon
     fMuon    ->load(i0);
-    if(!fMuon->selectSingleMu()) continue;
+    if(!fMuon->selectDiMu()) continue;
     //Load the rest and fill
     fEvt    ->load(i0);
     fEvt    ->fillEvent();
